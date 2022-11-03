@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>五级城市联动</title>
+  <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.2/css/bootstrap.min.css" rel="stylesheet">
+  <style>*{ margin: 0; padding: 0; } .container{ display: flex; width: 100%; height: 100vh; align-items: center; justify-content: space-around; } .row { width: 100%; }</style>
+</head>
+<body>
+<form class="container" action="">
+  <div class="row">
+    <select class="form-select region col" aria-label="">
+      <option selected>请选择</option>
+    </select>
+    <select class="form-select region col" aria-label="">
+      <option selected>请选择</option>
+    </select>
+    <select class="form-select region col" aria-label="">
+      <option selected>请选择</option>
+    </select>
+    <select class="form-select region col" aria-label="">
+      <option selected>请选择</option>
+    </select>
+    <select class="form-select region col" aria-label="">
+      <option selected>请选择</option>
+    </select>
+  </div>
+</form>
+<script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.2/js/bootstrap.min.js"></script>
+<script>
+  let MyRegionObj = {
+    level: 0,
+    regions: [],
+    index:0
+  };
+  let regionUrl = 'region.php';
+  let emptyOption = `<option selected>请选择</option>`
+  function render(elem, regions, level=0) {
+    let str = '';
+    if (level == 0) {
+      str = `<option selected>请选择省或市</option>`;
+    }else{
+      str = emptyOption;
+    }
+    if (regions) {
+      regions.forEach((val) => {
+        str += `<option value="${val.code}">${val.region_name}</option>`
+      });
+      elem.html(str);
+    }
+  }
+  $(function (){
+    let myRegion;
+    setTimeout(() => {
+      $.post(regionUrl, {level:MyRegionObj.level}, function (res) {
+        if (res.hasOwnProperty('code') && res.hasOwnProperty('data')) {
+          if (res.code == 1) {
+            myRegion = res.data;
+            MyRegionObj.regions = myRegion;
+            render($('.region').eq(0), myRegion, MyRegionObj.index);
+            return true;
+          }
+          alert(res.msg);
+        }
+      });
+    }, 100);
+    $('.region').on('select change', function () {
+      const index = $(this).index();
+      const code = $(this).val();
+      if (index < MyRegionObj.index) {
+        $(this).nextAll().html(emptyOption);
+      }
+      $.post(regionUrl, {code: code}, function (res) {
+        if (res.hasOwnProperty('code') && res.hasOwnProperty('data')) {
+          if (res.code == 1) {
+            myRegion = res.data;
+            MyRegionObj.regions = myRegion;
+            MyRegionObj.index = Number(index + 1);
+            render($('.region').eq(MyRegionObj.index), myRegion, MyRegionObj.index);
+            return true;
+          }
+          alert(res.msg);
+        }
+      });
+
+
+    });
+  })
+</script>
+</body>
+</html>
